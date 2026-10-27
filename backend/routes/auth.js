@@ -1,51 +1,55 @@
 const express = require('express');
-const router = express.Router();
 const bcrypt = require('bcrypt');
+const rateLimit = require('express-rate-limit');
 const User = require('../models/User');
-const { sendTokenResponse } = require('../utils/authUtils');
+const requireAuth = require('../middleware/auth');
+const { credentialsSchema } = require('../validation');
+const { issueSession, clearSession, publicUser } = require('../utils/authUtils');
 
-router.post('/signup', async (req, res) => {
-    try {
-        const { email, password } = req.body;
-        if (!email || !password) return res.status(400).json({ error: 'Email and password are required' });
+const BCRYPT_ROUNDS = 12;
+// Compared against when the email is unknown, so both failure paths cost one bcrypt.
+const DUMMY_HASH = bcrypt.hashSync('dummy-password-for-timing', BCRYPT_ROUNDS);
 
-        const existing = await User.findOne({ email });
-        if (existing) return res.status(409).json({ error: 'User with this email already exists' });
+function authRoutes(config) {
+  const router = express.Router();
+  const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    limit: config.authLimit,
+    standardHeaders: 'draft-7',
+    legacyHeaders: false,
+    message: { error: 'Too many attempts. Try again in 15 minutes.' },
+  });
 
-        const passwordHash = await bcrypt.hash(password, 12);
-        const user = await User.create({ email, passwordHash });
-        sendTokenResponse(res, user);
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: 'Server error during signup' });
-    }
-});
+  router.post('/signup', limiter, async (req, res) => {
+    const { email, password } = credentialsSchema.parse(req.body);
+    if (await User.exists({ email })) return res.status(409).json({ error: 'An account with this email already exists' });
 
-router.post('/login', async (req, res) => {
-    try {
-        const { email, password } = req.body;
-        if (!email || !password) return res.status(400).json({ error: 'Email and password are required' });
+    const passwordHash = await bcrypt.hash(password, BCRYPT_ROUNDS);
+    const user = await User.create({ email, passwordHash });
+    issueSession(res, user, config);
+    res.json({ user: publicUser(user) });
+  });
 
-        const user = await User.findOne({ email });
-        if (!user || !user.passwordHash) return res.status(401).json({ error: 'Invalid credentials' });
+  router.post('/login', limiter, async (req, res) => {
+    const { email, password } = credentialsSchema.parse(req.body);
+    const user = await User.findOne({ email });
+    const match = await bcrypt.compare(password, user?.passwordHash || DUMMY_HASH);
+    if (!user?.passwordHash || !match) return res.status(401).json({ error: 'Invalid credentials' });
 
-        const match = await bcrypt.compare(password, user.passwordHash);
-        if (!match) return res.status(401).json({ error: 'Invalid credentials' });
+    issueSession(res, user, config);
+    res.json({ user: publicUser(user) });
+  });
 
-        sendTokenResponse(res, user);
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: 'Server error during login' });
-    }
-});
+  router.post('/logout', (req, res) => {
+    clearSession(res, config);
+    res.json({ ok: true });
+  });
 
-router.post('/logout', (req, res) => {
-    res.clearCookie('token', { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'lax' });
-    res.json({ ok: true, message: 'Logged out successfully' });
-});
+  router.get('/session', requireAuth, (req, res) => {
+    res.json({ user: publicUser(req.user) });
+  });
 
-router.get('/session', require('../middleware/auth'), (req, res) => {
-    res.json({ user: { id: req.user._id, email: req.user.email } });
-});
+  return router;
+}
 
-module.exports = router;
+module.exports = authRoutes;

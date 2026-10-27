@@ -1,48 +1,47 @@
 const express = require('express');
-const router = express.Router();
+const mongoose = require('mongoose');
 const requireAuth = require('../middleware/auth');
 const Secret = require('../models/Secret');
+const { encryptedSchema } = require('../validation');
 
+const router = express.Router();
 router.use(requireAuth);
 
+const ownedBy = (req) => ({ _id: req.params.id, userId: req.user._id });
+const notFound = res => res.status(404).json({ error: 'Not found' });
+
+router.param('id', (req, res, next, id) => (mongoose.isValidObjectId(id) ? next() : notFound(res)));
+
 router.get('/', async (req, res) => {
-    const secrets = await Secret.find({ userId: req.user._id }).sort({ createdAt: -1 });
-    res.json(secrets);
+  const secrets = await Secret.find({ userId: req.user._id }).sort({ createdAt: -1, _id: -1 });
+  res.json(secrets);
 });
 
 router.post('/', async (req, res) => {
-    const { site, username, ciphertext, iv, salt } = req.body;
-    if (!ciphertext || !iv || !salt) {
-        return res.status(400).json({ error: 'Missing required encrypted data fields' });
-    }
-    const secret = await Secret.create({ userId: req.user._id, site, username, ciphertext, iv, salt });
-    res.status(201).json(secret);
-});
-
-router.get('/:id', async (req, res) => {
-    const secret = await Secret.findOne({ _id: req.params.id, userId: req.user._id });
-    if (!secret) return res.status(404).json({ error: 'Secret not found' });
-    res.json(secret);
+  const { ciphertext, iv } = encryptedSchema.parse(req.body);
+  const { maxEntries } = req.app.locals.config;
+  if (await Secret.countDocuments({ userId: req.user._id }) >= maxEntries) {
+    return res.status(409).json({ error: 'Entry limit reached' });
+  }
+  const secret = await Secret.create({ userId: req.user._id, v: 2, ciphertext, iv });
+  res.status(201).json(secret);
 });
 
 router.put('/:id', async (req, res) => {
-    const { site, username, ciphertext, iv, salt } = req.body;
-    if (!ciphertext || !iv || !salt) {
-        return res.status(400).json({ error: 'Missing required encrypted data fields' });
-    }
-    const updatedSecret = await Secret.findOneAndUpdate(
-        { _id: req.params.id, userId: req.user._id },
-        { site, username, ciphertext, iv, salt },
-        { new: true }
-    );
-    if (!updatedSecret) return res.status(404).json({ error: 'Secret not found' });
-    res.json(updatedSecret);
+  const { ciphertext, iv } = encryptedSchema.parse(req.body);
+  const secret = await Secret.findOneAndUpdate(
+    ownedBy(req),
+    { $set: { v: 2, ciphertext, iv }, $unset: { site: 1, username: 1, salt: 1 } },
+    { new: true },
+  );
+  if (!secret) return notFound(res);
+  res.json(secret);
 });
 
 router.delete('/:id', async (req, res) => {
-    const deleted = await Secret.findOneAndDelete({ _id: req.params.id, userId: req.user._id });
-    if (!deleted) return res.status(404).json({ error: 'Secret not found' });
-    res.json({ ok: true, message: 'Secret deleted successfully' });
+  const deleted = await Secret.findOneAndDelete(ownedBy(req));
+  if (!deleted) return notFound(res);
+  res.json({ ok: true });
 });
 
 module.exports = router;

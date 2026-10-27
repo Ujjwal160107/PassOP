@@ -1,27 +1,27 @@
 const express = require('express');
-const router = express.Router();
 const passport = require('passport');
-const { sendTokenResponse } = require('../utils/authUtils');
+const { configureGoogle } = require('../auth/google');
+const { issueSession } = require('../utils/authUtils');
 
-router.get('/google', passport.authenticate('google', {
+function oauthRoutes(config) {
+  configureGoogle(config);
+  const router = express.Router();
+
+  router.get('/google', passport.authenticate('google', {
+    session: false,
     scope: ['profile', 'email'],
-    prompt: 'select_account'
-}));
+    prompt: 'select_account',
+  }));
 
-router.get('/google/callback',
-    passport.authenticate('google', {
-        session: false,
-        failureRedirect: `${process.env.FRONTEND_URL}/?auth=fail`
-    }),
+  router.get('/google/callback',
+    passport.authenticate('google', { session: false, failureRedirect: `${config.frontendUrl}/?auth=fail` }),
     (req, res) => {
-        console.log("==============================================");
-        console.log(">>> OAUTH CALLBACK HANDLER TRIGGERED <<<");
-        console.log("Value of process.env.API_BASE_URL:", process.env.API_BASE_URL);
-        console.log("Value of process.env.FRONTEND_URL:", process.env.FRONTEND_URL);
-        console.log("==============================================");
+      issueSession(res, req.user, config);
+      res.redirect(config.frontendUrl);
+    },
+  );
 
-        sendTokenResponse(res, req.user, process.env.FRONTEND_URL || 'http://localhost:5173');
-    }
-);
+  return router;
+}
 
-module.exports = router;
+module.exports = oauthRoutes;

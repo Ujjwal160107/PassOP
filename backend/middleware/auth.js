@@ -1,18 +1,15 @@
-const jwt = require('jsonwebtoken');
+const mongoose = require('mongoose');
 const User = require('../models/User');
+const { readSession } = require('../utils/authUtils');
 
 async function requireAuth(req, res, next) {
-  try {
-    const token = req.cookies?.token || (req.headers.authorization && req.headers.authorization.split(' ')[1]);
-    if (!token) return res.status(401).json({ error: 'Not authenticated' });
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await User.findById(decoded.sub).select('-passwordHash');
-    if (!user) return res.status(401).json({ error: 'User not found' });
-    req.user = user;
-    next();
-  } catch (err) {
-    return res.status(401).json({ error: 'Invalid token' });
-  }
+  const userId = readSession(req, req.app.locals.config);
+  if (!userId || !mongoose.isValidObjectId(userId)) return res.status(401).json({ error: 'Not authenticated' });
+
+  const user = await User.findById(userId).select('-passwordHash');
+  if (!user) return res.status(401).json({ error: 'Not authenticated' });
+  req.user = user;
+  next();
 }
 
 module.exports = requireAuth;

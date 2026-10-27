@@ -1,25 +1,38 @@
 const jwt = require('jsonwebtoken');
 
-const sendTokenResponse = (res, user, redirectUrl = null) => {
-  const token = jwt.sign({ sub: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+const COOKIE = 'token';
+const MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
 
-  const isProduction = process.env.NODE_ENV === 'production';
-
-  res.cookie('token', token, {
+// Frontend and API live on different sites in production, so the cookie must be SameSite=None there.
+// clearCookie only matches when these options are identical to the ones used to set it.
+function cookieOptions(config) {
+  return {
     httpOnly: true,
-    secure: isProduction,
-    sameSite: isProduction ? 'none' : 'lax',
-    maxAge: 7 * 24 * 60 * 60 * 1000
-  });
+    secure: config.isProduction,
+    sameSite: config.isProduction ? 'none' : 'lax',
+    path: '/',
+  };
+}
 
-  if (redirectUrl) {
-    return res.redirect(redirectUrl);
+function issueSession(res, user, config) {
+  const token = jwt.sign({ sub: String(user._id) }, config.jwtSecret, { algorithm: 'HS256', expiresIn: '7d' });
+  res.cookie(COOKIE, token, { ...cookieOptions(config), maxAge: MAX_AGE_MS });
+}
+
+function clearSession(res, config) {
+  res.clearCookie(COOKIE, cookieOptions(config));
+}
+
+function readSession(req, config) {
+  const token = req.cookies?.[COOKIE];
+  if (!token) return null;
+  try {
+    return jwt.verify(token, config.jwtSecret, { algorithms: ['HS256'] }).sub;
+  } catch {
+    return null;
   }
+}
 
-  return res.json({
-    ok: true,
-    user: { id: user._id, email: user.email }
-  });
-};
+const publicUser = user => ({ id: user._id, email: user.email });
 
-module.exports = { sendTokenResponse };
+module.exports = { issueSession, clearSession, readSession, cookieOptions, publicUser };
