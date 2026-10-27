@@ -84,6 +84,8 @@ npm start              # http://localhost:3000
 
 The server refuses to start if a required variable is missing.
 
+Interactive API docs (Swagger UI) are served at `/docs`, for example `http://localhost:3000/docs`. The raw OpenAPI spec is at `/docs/openapi.json`.
+
 ### Frontend
 
 ```bash

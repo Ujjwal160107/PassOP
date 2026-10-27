@@ -10,6 +10,7 @@ const authRoutes = require('./routes/auth');
 const secretRoutes = require('./routes/secrets');
 const oauthRoutes = require('./routes/oauth');
 const vaultRoutes = require('./routes/vault');
+const docsRoutes = require('./routes/docs');
 const requireSameOrigin = require('./middleware/originCheck');
 const { notFound, errorHandler } = require('./middleware/errors');
 
@@ -36,6 +37,7 @@ function createApp(config) {
   app.use('/api/secrets', secretRoutes);
 
   if (config.google) app.use('/auth', oauthRoutes(config));
+  app.use('/docs', docsRoutes(config));
 
   app.use(notFound);
   app.use(errorHandler);

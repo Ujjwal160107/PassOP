@@ -1,0 +1,69 @@
+/* PassOP monochrome dark theme for Swagger UI */
+html:root, html:root body { background: #000; }
+html:root body .swagger-ui { color: #fafafa; font-family: Inter, ui-sans-serif, system-ui, sans-serif; }
+html:root body .swagger-ui .topbar { display: none; }
+html:root body .swagger-ui .wrapper { max-width: 1100px; }
+html:root body .swagger-ui .information-container { padding: 8px 0 0; }
+html:root body .swagger-ui .info { margin: 40px 0 28px; }
+html:root body .swagger-ui .info .title { color: #fafafa; font-size: 40px; letter-spacing: -0.02em; }
+html:root body .swagger-ui .info .title small { background: #18181b; border: 1px solid #3f3f46; }
+html:root body .swagger-ui .info .title small pre { color: #fafafa; }
+html:root body .swagger-ui .info .title small.version-stamp { background: #fafafa; }
+html:root body .swagger-ui .info .title small.version-stamp pre { color: #09090b; }
+html:root body .swagger-ui .info p, html:root body .swagger-ui .info li, html:root body .swagger-ui .info table, html:root body .swagger-ui .renderedMarkdown p { color: #d4d4d8; font-size: 15px; line-height: 1.6; }
+html:root body .swagger-ui .info a, html:root body .swagger-ui a.nostyle, html:root body .swagger-ui .info .base-url { color: #a1a1aa; }
+html:root body .swagger-ui .info code, html:root body .swagger-ui .renderedMarkdown code, html:root body .swagger-ui .markdown code { background: #18181b; color: #fafafa; border-radius: 4px; padding: 1px 5px; }
+html:root body .swagger-ui .scheme-container { background: #0a0a0a; border: 1px solid #27272a; border-radius: 12px; box-shadow: none; margin: 0 0 24px; padding: 18px 0; }
+html:root body .swagger-ui .scheme-container .schemes > label, html:root body .swagger-ui .servers-title { color: #a1a1aa; }
+html:root body .swagger-ui select { background-color: #18181b; color: #fafafa; border: 1px solid #3f3f46; box-shadow: none; }
+html:root body .swagger-ui .opblock-tag { color: #fafafa; border-bottom: 1px solid #27272a; font-size: 22px; }
+html:root body .swagger-ui .opblock-tag small { color: #a1a1aa; }
+html:root body .swagger-ui .opblock-tag svg, html:root body .swagger-ui .expand-operation svg, html:root body .swagger-ui .models-control svg, html:root body .swagger-ui .model-toggle::after { fill: #a1a1aa; }
+html:root body .swagger-ui .opblock { background: #0a0a0a !important; border: 1px solid #27272a !important; border-radius: 10px; box-shadow: none; margin: 0 0 10px; }
+html:root body .swagger-ui .opblock .opblock-summary { border-bottom: 0; padding: 8px 12px; }
+html:root body .swagger-ui .opblock.is-open .opblock-summary { border-bottom: 1px solid #27272a; }
+html:root body .swagger-ui .opblock .opblock-summary-method { border-radius: 6px; min-width: 76px; font-family: "JetBrains Mono", ui-monospace, monospace; text-shadow: none; font-size: 13px; }
+html:root body .swagger-ui .opblock.opblock-get .opblock-summary-method { background: #fafafa; color: #09090b; }
+html:root body .swagger-ui .opblock.opblock-post .opblock-summary-method,
+html:root body .swagger-ui .opblock.opblock-put .opblock-summary-method { background: #3f3f46; color: #fafafa; }
+html:root body .swagger-ui .opblock.opblock-delete .opblock-summary-method { background: #7f1d1d; color: #fecaca; }
+html:root body .swagger-ui .opblock .opblock-summary-path, html:root body .swagger-ui .opblock .opblock-summary-path a { color: #fafafa; font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 15px; }
+html:root body .swagger-ui .opblock .opblock-summary-description { color: #a1a1aa; font-size: 14px; }
+html:root body .swagger-ui .opblock-description-wrapper p, html:root body .swagger-ui .opblock-external-docs-wrapper p, html:root body .swagger-ui .opblock-title_normal p { color: #d4d4d8; }
+html:root body .swagger-ui .opblock .opblock-section-header { background: #111113; box-shadow: none; border-bottom: 1px solid #27272a; }
+html:root body .swagger-ui .opblock .opblock-section-header h4, html:root body .swagger-ui .opblock .opblock-section-header label { color: #fafafa; }
+html:root body .swagger-ui .tab li, html:root body .swagger-ui .tab li button.tablinks { color: #a1a1aa; }
+html:root body .swagger-ui .tab li.active, html:root body .swagger-ui .tab li.active button.tablinks { color: #fafafa; }
+html:root body .swagger-ui table thead tr td, html:root body .swagger-ui table thead tr th, html:root body .swagger-ui .responses-inner h4, html:root body .swagger-ui .responses-inner h5 { color: #a1a1aa; border-bottom-color: #27272a; }
+html:root body .swagger-ui .response-col_status, html:root body .swagger-ui .parameter__name, html:root body .swagger-ui .parameter__type, html:root body .swagger-ui .parameter__in, html:root body .swagger-ui .response-col_links, html:root body .swagger-ui .col_header { color: #fafafa; }
+html:root body .swagger-ui .parameter__name.required::after { color: #f87171; }
+html:root body .swagger-ui .response-col_description, html:root body .swagger-ui .parameters-col_description { color: #d4d4d8; }
+html:root body .swagger-ui .microlight, html:root body .swagger-ui .highlight-code > .microlight, html:root body .swagger-ui pre.microlight { background: #111113 !important; border: 1px solid #27272a; border-radius: 8px; }
+html:root body .swagger-ui .highlight-code .microlight code, html:root body .swagger-ui .microlight code { color: #e4e4e7 !important; }
+html:root body .swagger-ui .model-box, html:root body .swagger-ui section.models .model-container { background: #0a0a0a; }
+html:root body .swagger-ui section.models { border: 1px solid #27272a; border-radius: 12px; }
+html:root body .swagger-ui section.models h4, html:root body .swagger-ui section.models h4 span { color: #fafafa; }
+html:root body .swagger-ui .model, html:root body .swagger-ui .model-title, html:root body .swagger-ui .prop-type, html:root body .swagger-ui .prop-format { color: #d4d4d8; }
+html:root body .swagger-ui .model .property.primitive, html:root body .swagger-ui .model-hint { color: #a1a1aa; }
+html:root body .swagger-ui .btn { color: #fafafa; border-color: #3f3f46; box-shadow: none; }
+html:root body .swagger-ui .btn.execute { background: #fafafa; color: #09090b; border-color: #fafafa; }
+html:root body .swagger-ui .btn.authorize { color: #fafafa; border-color: #fafafa; }
+html:root body .swagger-ui .btn.authorize svg { fill: #fafafa; }
+html:root body .swagger-ui .authorization__btn svg, html:root body .swagger-ui .opblock-summary-control svg { fill: #a1a1aa; }
+html:root body .swagger-ui input[type=text], html:root body .swagger-ui textarea { background: #18181b; color: #fafafa; border: 1px solid #3f3f46; }
+html:root body .swagger-ui .responses-table .response-col_status { font-family: "JetBrains Mono", ui-monospace, monospace; }
+html:root body .swagger-ui .loading-container .loading::after { color: #a1a1aa; }
+html:root body .swagger-ui .dialog-ux .modal-ux { background: #0a0a0a; border-color: #27272a; }
+html:root body .swagger-ui .dialog-ux .modal-ux-header h3, html:root body .swagger-ui .dialog-ux .modal-ux-content p, html:root body .swagger-ui .dialog-ux .modal-ux-content h4 { color: #fafafa; }
+html:root body .swagger-ui .copy-to-clipboard { background: #27272a; }
+html:root body .swagger-ui, html:root body .swagger-ui .wrapper, html:root body .swagger-ui .information-container, html:root body .swagger-ui section.models, html:root body .swagger-ui .opblock-tag-section { background: #000; }
+html:root body .swagger-ui .scheme-container { background: #0a0a0a; }
+html:root body .swagger-ui .info .title small.version-stamp { background: #fafafa; }
+html:root body .swagger-ui .info .title small:not(.version-stamp) { background: #27272a; }
+html:root body .swagger-ui .info .title small:not(.version-stamp) pre { color: #d4d4d8; }
+html:root body .swagger-ui .info code, html:root body .swagger-ui .renderedMarkdown code { color: #fafafa; }
+html:root body .swagger-ui .btn.authorize { background: transparent; border-color: #fafafa; color: #fafafa; }
+html:root body .swagger-ui .btn.authorize span { color: #fafafa; }
+html:root body .swagger-ui .response-col_status { color: #fafafa; }
+html:root body .swagger-ui .opblock .opblock-section-header { background: #111113; }
+html:root body .swagger-ui .opblock-body pre.microlight, html:root body .swagger-ui .responses-inner pre { background: #111113 !important; }
