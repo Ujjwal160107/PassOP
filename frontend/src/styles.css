@@ -70,7 +70,8 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
-    *, *::before, *::after {
+    /* react-toastify times autoClose with its (hidden) progress bar animation, so that one keeps its duration */
+    *:not(.Toastify__progress-bar), *::before, *::after {
       transition-duration: 0.01ms !important;
       animation-duration: 0.01ms !important;
       animation-iteration-count: 1 !important;
