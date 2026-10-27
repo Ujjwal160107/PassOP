@@ -2,8 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { toast } from 'react-toastify'
 import { CloudOff, LoaderCircle } from 'lucide-react'
 import { api } from '../lib/api.js'
-import { encryptJson } from '../lib/crypto.js'
-import { isLegacy, recoverLegacy, unlockEntries } from '../lib/vaultSession.js'
+import { isLegacy, recoverLegacy, sealEntry, unlockEntries } from '../lib/vaultSession.js'
 import useIdleLock from '../hooks/useIdleLock.js'
 import Button from './ui/Button.jsx'
 import CenteredCard from './ui/CenteredCard.jsx'
@@ -76,7 +75,7 @@ export default function VaultGate({ user, onLogout }) {
   }
 
   const save = async (fields, id) => {
-    const payload = await encryptJson(key, fields)
+    const payload = await sealEntry(key, fields)
     if (id) {
       await api.put(`/api/secrets/${id}`, payload)
       setEntries(list => list.map(e => (e.id === id ? { ...e, ...fields } : e)))

@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 
-// v2 entries hold only ciphertext + iv (the whole entry is encrypted client-side).
+// v2 entries hold ciphertext + iv (the whole entry, encrypted client-side) plus a readable copy
+// of the site, so the database shows what each entry is for. Username and password stay encrypted.
 // Entries without v are legacy: plaintext site/username and a per-entry salt. They are
 // rewritten as v2 by the client on unlock.
 const SecretSchema = new mongoose.Schema({

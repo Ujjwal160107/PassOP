@@ -29,5 +29,11 @@ const vaultSchema = z.object({
   verifier: encryptedSchema,
 }).strict();
 
+// A vault entry: username and password stay inside the ciphertext; the site is kept readable.
+const secretSchema = encryptedSchema.extend({
+  site: z.string({ error: 'site is required' }).max(2048, 'site is too long'),
+});
+
 module.exports.encryptedSchema = encryptedSchema;
+module.exports.secretSchema = secretSchema;
 module.exports.vaultSchema = vaultSchema;

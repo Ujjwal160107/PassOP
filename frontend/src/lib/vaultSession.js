@@ -2,6 +2,12 @@ import { decryptJson, encryptJson } from './crypto.js'
 
 export const isLegacy = secret => secret.v !== 2
 
+// Request body for saving an entry: everything encrypted, plus a readable copy of the site so the
+// database shows what each entry is for. Username and password exist only inside the ciphertext.
+export async function sealEntry(key, fields) {
+  return { site: fields.site, ...(await encryptJson(key, fields)) }
+}
+
 const loadLegacy = () => import('./legacyCrypto.js')
 const yieldToBrowser = () => new Promise(resolve => setTimeout(resolve))
 
@@ -11,7 +17,7 @@ async function migrateLegacy(key, password, secret, decryptLegacy) {
   const fields = { site: secret.site ?? '', username: secret.username ?? '', password: plain }
   return {
     entry: { id: secret._id, ...fields, createdAt: secret.createdAt },
-    migration: { id: secret._id, payload: await encryptJson(key, fields) },
+    migration: { id: secret._id, payload: await sealEntry(key, fields), legacy: true },
   }
 }
 
@@ -30,6 +36,8 @@ export async function loadEntries(key, password, secrets, onProgress) {
       try {
         const fields = await decryptJson(key, secret)
         entries.push({ id: secret._id, ...fields, createdAt: secret.createdAt })
+        // Entries saved before the site was stored readable get it on this unlock.
+        if (secret.site === undefined) migrations.push({ id: secret._id, payload: await sealEntry(key, fields) })
       } catch {
         broken.push(secret) // corrupted or tampered; one bad row must not block the vault
       }
@@ -69,10 +77,10 @@ export async function unlockEntries(key, password, api, onProgress) {
   const secrets = await api.get('/api/secrets')
   const { entries, migrations, broken } = await loadEntries(key, password, secrets, onProgress)
   let migrated = 0
-  for (const { id, payload } of migrations) {
+  for (const { id, payload, legacy } of migrations) {
     try {
       await api.put(`/api/secrets/${id}`, payload)
-      migrated++
+      if (legacy) migrated++
     } catch {
       // stays legacy; retried next unlock
     }

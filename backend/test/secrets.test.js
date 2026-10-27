@@ -9,7 +9,7 @@ after(stopDb);
 beforeEach(clearDb);
 
 const b64 = (n, fill = 1) => Buffer.alloc(n, fill).toString('base64');
-const entry = (fill = 1) => ({ ciphertext: b64(40, fill), iv: b64(12) });
+const entry = (fill = 1, site = 'https://a.com') => ({ site, ciphertext: b64(40, fill), iv: b64(12) });
 
 async function signedIn(overrides) {
   const app = makeApp(overrides);
@@ -24,10 +24,13 @@ test('create, list, update and delete an entry', async () => {
   assert.equal(created.status, 201);
   assert.equal(created.body.v, 2);
   assert.equal(created.body.userId, undefined);
+  assert.equal(created.body.site, 'https://a.com');
 
-  const updated = await agent.put(`/api/secrets/${created.body._id}`).send(entry(2));
+  const updated = await agent.put(`/api/secrets/${created.body._id}`).send(entry(2, 'https://b.com'));
   assert.equal(updated.status, 200);
   assert.equal(updated.body.ciphertext, entry(2).ciphertext);
+  assert.equal(updated.body.site, 'https://b.com');
+  assert.equal((await Secret.findById(created.body._id).lean()).site, 'https://b.com');
 
   const list = await agent.get('/api/secrets');
   assert.equal(list.body.length, 1);
@@ -57,7 +60,7 @@ test('users cannot see or touch each other\'s entries', async () => {
   assert.equal((await alice.get('/api/secrets')).body[0].ciphertext, entry().ciphertext);
 });
 
-test('updating a legacy entry removes its plaintext fields', async () => {
+test('updating a legacy entry keeps only the readable site', async () => {
   const { agent, user } = await signedIn();
   const legacy = await Secret.create({
     userId: user.id, site: 'https://a.com', username: 'me', ciphertext: 'U2FsdGVk', iv: 'ab', salt: 'cd',
@@ -66,17 +69,20 @@ test('updating a legacy entry removes its plaintext fields', async () => {
   assert.equal(listed.site, 'https://a.com');
   assert.equal(listed.v, undefined);
 
-  await agent.put(`/api/secrets/${legacy._id}`).send(entry());
+  await agent.put(`/api/secrets/${legacy._id}`).send(entry(1, 'https://a.com'));
   const doc = await Secret.findById(legacy._id).lean();
   assert.equal(doc.v, 2);
-  assert.equal(doc.site, undefined);
+  assert.equal(doc.site, 'https://a.com');
   assert.equal(doc.username, undefined);
   assert.equal(doc.salt, undefined);
 });
 
 test('plaintext and malformed fields are rejected', async () => {
   const { agent } = await signedIn();
-  assert.equal((await agent.post('/api/secrets').send({ ...entry(), site: 'https://a.com' })).status, 400);
+  assert.equal((await agent.post('/api/secrets').send({ ...entry(), username: 'me' })).status, 400);
+  assert.equal((await agent.post('/api/secrets').send({ ciphertext: b64(40), iv: b64(12) })).status, 400);
+  assert.equal((await agent.post('/api/secrets').send({ ...entry(), site: 42 })).status, 400);
+  assert.equal((await agent.post('/api/secrets').send({ ...entry(), site: 'a'.repeat(2049) })).status, 400);
   assert.equal((await agent.post('/api/secrets').send({ ...entry(), iv: b64(16) })).status, 400);
   assert.equal((await agent.post('/api/secrets').send({ ...entry(), ciphertext: 'A'.repeat(16385) })).status, 400);
   assert.equal((await agent.post('/api/secrets').send({ ...entry(), ciphertext: 'not base64!' })).status, 400);

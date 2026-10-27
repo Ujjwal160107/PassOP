@@ -2,7 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const requireAuth = require('../middleware/auth');
 const Secret = require('../models/Secret');
-const { encryptedSchema } = require('../validation');
+const { secretSchema } = require('../validation');
 
 const router = express.Router();
 router.use(requireAuth);
@@ -18,20 +18,20 @@ router.get('/', async (req, res) => {
 });
 
 router.post('/', async (req, res) => {
-  const { ciphertext, iv } = encryptedSchema.parse(req.body);
+  const { site, ciphertext, iv } = secretSchema.parse(req.body);
   const { maxEntries } = req.app.locals.config;
   if (await Secret.countDocuments({ userId: req.user._id }) >= maxEntries) {
     return res.status(409).json({ error: 'Entry limit reached' });
   }
-  const secret = await Secret.create({ userId: req.user._id, v: 2, ciphertext, iv });
+  const secret = await Secret.create({ userId: req.user._id, v: 2, site, ciphertext, iv });
   res.status(201).json(secret);
 });
 
 router.put('/:id', async (req, res) => {
-  const { ciphertext, iv } = encryptedSchema.parse(req.body);
+  const { site, ciphertext, iv } = secretSchema.parse(req.body);
   const secret = await Secret.findOneAndUpdate(
     ownedBy(req),
-    { $set: { v: 2, ciphertext, iv }, $unset: { site: 1, username: 1, salt: 1 } },
+    { $set: { v: 2, site, ciphertext, iv }, $unset: { username: 1, salt: 1 } },
     { new: true },
   );
   if (!secret) return notFound(res);

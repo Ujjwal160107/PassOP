@@ -22,7 +22,7 @@ function openApiSpec(config) {
       title: 'PassOP API',
       version: '2.0.0',
       description: [
-        'Zero-knowledge password vault. The browser encrypts every entry with AES-256-GCM under a key derived from the master password (PBKDF2-SHA256, 600,000 iterations). **The API only ever stores and returns ciphertext.**',
+        'Zero-knowledge password vault. The browser encrypts every entry with AES-256-GCM under a key derived from the master password (PBKDF2-SHA256, 600,000 iterations). **Usernames and passwords only ever reach the API as ciphertext.** Each entry’s site name is also stored readable, so the database shows what an entry is for.',
         '',
         '- **Session:** a 7-day HS256 JWT in an `httpOnly` cookie named `token`, set by sign-up, login or Google sign-in.',
         '- **CSRF defence:** every non-GET request under `/api` must send `Origin` equal to the PassOP frontend, or it gets `403`. That is why *Try it out* is enabled for GET requests only on this page.',
@@ -147,7 +147,7 @@ function openApiSpec(config) {
         get: {
           tags: ['Secrets'],
           summary: 'List my entries',
-          description: 'Newest first. Each entry is opaque ciphertext; site, username and password are all inside it.',
+          description: 'Newest first. Each entry has a readable `site`; the username and password are only inside the ciphertext.',
           security: [{ cookieAuth: [] }],
           responses: {
             200: { description: 'The user’s encrypted entries', ...json({ type: 'array', items: { $ref: '#/components/schemas/Secret' } }) },
@@ -158,7 +158,7 @@ function openApiSpec(config) {
           tags: ['Secrets'],
           summary: 'Save an entry',
           security: [{ cookieAuth: [] }],
-          requestBody: { required: true, ...json({ $ref: '#/components/schemas/Encrypted' }) },
+          requestBody: { required: true, ...json({ $ref: '#/components/schemas/SecretInput' }) },
           responses: {
             201: { description: 'Saved', ...json({ $ref: '#/components/schemas/Secret' }) },
             400: ERRORS.badRequest,
@@ -174,7 +174,7 @@ function openApiSpec(config) {
           tags: ['Secrets'],
           summary: 'Replace an entry',
           security: [{ cookieAuth: [] }],
-          requestBody: { required: true, ...json({ $ref: '#/components/schemas/Encrypted' }) },
+          requestBody: { required: true, ...json({ $ref: '#/components/schemas/SecretInput' }) },
           responses: {
             200: { description: 'Updated', ...json({ $ref: '#/components/schemas/Secret' }) },
             400: ERRORS.badRequest,
@@ -218,12 +218,24 @@ function openApiSpec(config) {
           type: 'object',
           required: ['ciphertext', 'iv'],
           additionalProperties: false,
-          description: 'AES-256-GCM output. The plaintext is `{ site, username, password }` and is never visible to the server.',
+          description: 'AES-256-GCM output. The server never sees the plaintext.',
           properties: {
             ciphertext: { type: 'string', format: 'byte', maxLength: 16384, description: 'Base64 ciphertext with the GCM tag' },
             iv: { type: 'string', format: 'byte', description: 'Base64 of a random 12-byte IV, new for every save' },
           },
           example: ENTRY_EXAMPLE,
+        },
+        SecretInput: {
+          type: 'object',
+          required: ['site', 'ciphertext', 'iv'],
+          additionalProperties: false,
+          description: 'A vault entry. The site is stored readable; username and password exist only inside the ciphertext.',
+          properties: {
+            site: { type: 'string', maxLength: 2048, example: 'https://github.com' },
+            ciphertext: { type: 'string', format: 'byte', maxLength: 16384, description: 'Base64 AES-256-GCM output of `{ site, username, password }`' },
+            iv: { type: 'string', format: 'byte', description: 'Base64 of a random 12-byte IV, new for every save' },
+          },
+          example: { site: 'https://github.com', ...ENTRY_EXAMPLE },
         },
         Vault: {
           type: 'object',
@@ -240,6 +252,7 @@ function openApiSpec(config) {
           properties: {
             _id: { type: 'string', example: '6721f3a8c4d2e1b0a9f8e7d6' },
             v: { type: 'integer', example: 2, description: 'Entry format version' },
+            site: { type: 'string', example: 'https://github.com', description: 'Readable site name' },
             ciphertext: { type: 'string', format: 'byte', example: ENTRY_EXAMPLE.ciphertext },
             iv: { type: 'string', format: 'byte', example: ENTRY_EXAMPLE.iv },
             createdAt: { type: 'string', format: 'date-time' },

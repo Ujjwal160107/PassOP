@@ -35,7 +35,7 @@ describe('vault session', () => {
 
   it('decrypts v2, migrates legacy and reports the rest as broken', async () => {
     const { key } = await createVault('master', { iterations: 1000 })
-    const v2 = { _id: 'a', v: 2, createdAt: 'x', ...(await encryptJson(key, { site: 's', username: 'u', password: 'p' })) }
+    const v2 = { _id: 'a', v: 2, site: 's', createdAt: 'x', ...(await encryptJson(key, { site: 's', username: 'u', password: 'p' })) }
     const old = legacySecret('b', 'hunter2', 'master')
     const other = legacySecret('c', 'zzz', 'a typo master')
     const progress = vi.fn()
