@@ -66,7 +66,7 @@ export default function AuthScreen({ onAuthed }) {
             type="button"
             aria-selected={mode === key}
             onClick={() => switchMode(key)}
-            className={`h-9 rounded-[8px] text-sm font-medium transition-colors duration-150 cursor-pointer ${mode === key ? 'bg-surface text-fg shadow-sm' : 'text-muted hover:text-fg'}`}
+            className={`h-9 rounded-[8px] text-sm font-medium transition-colors duration-150 cursor-pointer ${mode === key ? 'bg-surface text-fg ring-1 ring-border' : 'text-muted hover:text-fg'}`}
           >
             {m.tab}
           </button>

@@ -3,33 +3,33 @@
 
 :root {
   color-scheme: light;
-  --bg: #f7f8fa;
+  --bg: #fafafa;
   --surface: #ffffff;
-  --surface-2: #f1f3f7;
-  --border: #e3e7ee;
-  --fg: #0f172a;
-  --muted: #55627a;
-  --accent: #047857;
+  --surface-2: #f4f4f5;
+  --border: #e4e4e7;
+  --fg: #09090b;
+  --muted: #52525b;
+  --accent: #09090b;
   --accent-fg: #ffffff;
   --danger: #b91c1c;
   --danger-fg: #ffffff;
-  --ring: #047857;
+  --ring: #09090b;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
     color-scheme: dark;
-    --bg: #0b1220;
-    --surface: #131c2e;
-    --surface-2: #1a2540;
-    --border: rgb(255 255 255 / 0.08);
-    --fg: #f1f5f9;
-    --muted: #94a3b8;
-    --accent: #10b981;
-    --accent-fg: #04130d;
+    --bg: #000000;
+    --surface: #0a0a0a;
+    --surface-2: #18181b;
+    --border: #27272a;
+    --fg: #fafafa;
+    --muted: #a1a1aa;
+    --accent: #fafafa;
+    --accent-fg: #09090b;
     --danger: #f87171;
     --danger-fg: #1a0606;
-    --ring: #34d399;
+    --ring: #fafafa;
   }
 }
 
@@ -46,8 +46,8 @@
   --color-danger-fg: var(--danger-fg);
   --color-ring: var(--ring);
   --font-sans: "Inter Variable", ui-sans-serif, system-ui, sans-serif;
-  --radius-ctl: 10px;
-  --radius-card: 14px;
+  --radius-ctl: 8px;
+  --radius-card: 12px;
 }
 
 @layer base {
@@ -60,8 +60,13 @@
     outline-offset: 2px;
   }
 
+  ::selection {
+    background: var(--fg);
+    color: var(--bg);
+  }
+
   dialog::backdrop {
-    background: rgb(2 6 23 / 0.6);
+    background: rgb(0 0 0 / 0.6);
   }
 
   @media (prefers-reduced-motion: reduce) {

@@ -18,7 +18,7 @@ export default function Dialog({ open, onClose, title, children }) {
       aria-labelledby={titleId}
       onClose={onClose}
       onClick={e => e.target === ref.current && onClose()}
-      className="m-auto w-[min(100vw-2rem,28rem)] rounded-card border border-border bg-surface p-0 text-fg shadow-2xl"
+      className="m-auto w-[min(100vw-2rem,28rem)] rounded-card border border-border bg-surface p-0 text-fg shadow-xl"
     >
       {open && (
         <div className="flex flex-col gap-5 p-5 sm:p-6">
