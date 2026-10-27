@@ -18,20 +18,20 @@ router.get('/', async (req, res) => {
 });
 
 router.post('/', async (req, res) => {
-  const { site, ciphertext, iv } = secretSchema.parse(req.body);
+  const { site, username, ciphertext, iv } = secretSchema.parse(req.body);
   const { maxEntries } = req.app.locals.config;
   if (await Secret.countDocuments({ userId: req.user._id }) >= maxEntries) {
     return res.status(409).json({ error: 'Entry limit reached' });
   }
-  const secret = await Secret.create({ userId: req.user._id, v: 2, site, ciphertext, iv });
+  const secret = await Secret.create({ userId: req.user._id, ownerEmail: req.user.email, v: 2, site, username, ciphertext, iv });
   res.status(201).json(secret);
 });
 
 router.put('/:id', async (req, res) => {
-  const { site, ciphertext, iv } = secretSchema.parse(req.body);
+  const { site, username, ciphertext, iv } = secretSchema.parse(req.body);
   const secret = await Secret.findOneAndUpdate(
     ownedBy(req),
-    { $set: { v: 2, site, ciphertext, iv }, $unset: { username: 1, salt: 1 } },
+    { $set: { v: 2, ownerEmail: req.user.email, site, username, ciphertext, iv }, $unset: { salt: 1 } },
     { new: true },
   );
   if (!secret) return notFound(res);

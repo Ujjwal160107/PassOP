@@ -2,10 +2,10 @@ import { decryptJson, encryptJson } from './crypto.js'
 
 export const isLegacy = secret => secret.v !== 2
 
-// Request body for saving an entry: everything encrypted, plus a readable copy of the site so the
-// database shows what each entry is for. Username and password exist only inside the ciphertext.
+// Request body for saving an entry: everything encrypted, plus readable copies of the site and
+// username so the database shows what each entry is. The password exists only inside the ciphertext.
 export async function sealEntry(key, fields) {
-  return { site: fields.site, ...(await encryptJson(key, fields)) }
+  return { site: fields.site, username: fields.username, ...(await encryptJson(key, fields)) }
 }
 
 const loadLegacy = () => import('./legacyCrypto.js')
@@ -36,8 +36,8 @@ export async function loadEntries(key, password, secrets, onProgress) {
       try {
         const fields = await decryptJson(key, secret)
         entries.push({ id: secret._id, ...fields, createdAt: secret.createdAt })
-        // Entries saved before the site was stored readable get it on this unlock.
-        if (secret.site === undefined) migrations.push({ id: secret._id, payload: await sealEntry(key, fields) })
+        // Entries saved before site and username were stored readable get them on this unlock.
+        if (secret.site === undefined || secret.username === undefined) migrations.push({ id: secret._id, payload: await sealEntry(key, fields) })
       } catch {
         broken.push(secret) // corrupted or tampered; one bad row must not block the vault
       }

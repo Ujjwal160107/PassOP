@@ -6,7 +6,7 @@ PassOP is an end-to-end encrypted password manager built on the MERN stack (Mong
 
 ## Features
 
-* **Encrypted vault.** Username and password are encrypted on your device (AES-GCM-256) and the server never sees them. Each entry's site name is also stored readable, so the database shows what an entry is for.
+* **Encrypted vault.** Passwords are encrypted on your device (AES-GCM-256) and the server never sees them. Each entry's site and username are also stored readable, with the owner's email, so the database shows what an entry is.
 * **Master password with verification.** A wrong master password is detected, never "accepted" with garbage results.
 * **Accounts.** Email and password (bcrypt), or Google sign-in.
 * **Password generator** with a strength meter.
@@ -25,7 +25,7 @@ master password ──PBKDF2-SHA256, 600k iterations, per-user salt──▶ AES
 ```
 
 * The key is derived **once per unlock** with WebCrypto, is non-extractable, and is dropped on lock, logout or idle.
-* The server stores `{salt, iterations, verifier}` per user and `{site, ciphertext, iv}` per entry.
+* The server stores `{salt, iterations, verifier}` per user and `{ownerEmail, site, username, ciphertext, iv}` per entry.
 * Sessions are a 7-day HS256 JWT in an httpOnly cookie. Writes must come from `FRONTEND_URL` (Origin check). Login and signup are limited to 10 attempts per 15 minutes per IP.
 * Inputs are validated with zod. Mongo query operators in request bodies are stripped.
 * Google sign-in uses a `state` check, and only links to an existing account when Google reports the email as verified.

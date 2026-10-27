@@ -22,7 +22,7 @@ function openApiSpec(config) {
       title: 'PassOP API',
       version: '2.0.0',
       description: [
-        'Zero-knowledge password vault. The browser encrypts every entry with AES-256-GCM under a key derived from the master password (PBKDF2-SHA256, 600,000 iterations). **Usernames and passwords only ever reach the API as ciphertext.** Each entry’s site name is also stored readable, so the database shows what an entry is for.',
+        'Zero-knowledge password vault. The browser encrypts every entry with AES-256-GCM under a key derived from the master password (PBKDF2-SHA256, 600,000 iterations). **Passwords only ever reach the API as ciphertext.** Each entry’s site and username are also stored readable, with the owner’s email, so the database shows what an entry is.',
         '',
         '- **Session:** a 7-day HS256 JWT in an `httpOnly` cookie named `token`, set by sign-up, login or Google sign-in.',
         '- **CSRF defence:** every non-GET request under `/api` must send `Origin` equal to the PassOP frontend, or it gets `403`. That is why *Try it out* is enabled for GET requests only on this page.',
@@ -147,7 +147,7 @@ function openApiSpec(config) {
         get: {
           tags: ['Secrets'],
           summary: 'List my entries',
-          description: 'Newest first. Each entry has a readable `site`; the username and password are only inside the ciphertext.',
+          description: 'Newest first. Each entry has a readable `site`, `username` and `ownerEmail`; the password is only inside the ciphertext.',
           security: [{ cookieAuth: [] }],
           responses: {
             200: { description: 'The user’s encrypted entries', ...json({ type: 'array', items: { $ref: '#/components/schemas/Secret' } }) },
@@ -227,15 +227,16 @@ function openApiSpec(config) {
         },
         SecretInput: {
           type: 'object',
-          required: ['site', 'ciphertext', 'iv'],
+          required: ['site', 'username', 'ciphertext', 'iv'],
           additionalProperties: false,
-          description: 'A vault entry. The site is stored readable; username and password exist only inside the ciphertext.',
+          description: 'A vault entry. Site and username are stored readable; the password exists only inside the ciphertext. The server adds the owner’s email.',
           properties: {
             site: { type: 'string', maxLength: 2048, example: 'https://github.com' },
+            username: { type: 'string', maxLength: 2048, example: 'ujjwal@demo.dev' },
             ciphertext: { type: 'string', format: 'byte', maxLength: 16384, description: 'Base64 AES-256-GCM output of `{ site, username, password }`' },
             iv: { type: 'string', format: 'byte', description: 'Base64 of a random 12-byte IV, new for every save' },
           },
-          example: { site: 'https://github.com', ...ENTRY_EXAMPLE },
+          example: { site: 'https://github.com', username: 'ujjwal@demo.dev', ...ENTRY_EXAMPLE },
         },
         Vault: {
           type: 'object',
@@ -252,7 +253,9 @@ function openApiSpec(config) {
           properties: {
             _id: { type: 'string', example: '6721f3a8c4d2e1b0a9f8e7d6' },
             v: { type: 'integer', example: 2, description: 'Entry format version' },
+            ownerEmail: { type: 'string', example: 'ujjwal@example.com', description: 'Email of the account that owns the entry' },
             site: { type: 'string', example: 'https://github.com', description: 'Readable site name' },
+            username: { type: 'string', example: 'ujjwal@demo.dev', description: 'Readable username for the site' },
             ciphertext: { type: 'string', format: 'byte', example: ENTRY_EXAMPLE.ciphertext },
             iv: { type: 'string', format: 'byte', example: ENTRY_EXAMPLE.iv },
             createdAt: { type: 'string', format: 'date-time' },
